@@ -1,0 +1,99 @@
+module pipeline_processor(
+    input clk,
+    input reset
+);
+
+reg [31:0] PC;
+reg [31:0] IF_ID_instruction;
+reg [31:0] ID_EX_instruction;
+reg [31:0] EX_WB_result;
+reg [31:0] registers [3:0]; // 4 registers
+reg [31:0] memory [15:0]; // 16 words of memory
+
+// Function to decode operands
+function [31:0] decode_operands;
+    input [31:0] instruction;
+    begin
+        // Implement operand decoding logic here
+        decode_operands = 32'h0; // Temporary value
+    end
+endfunction
+
+// Function to execute instructions
+function [31:0] execute;
+    input [31:0] instruction;
+    input [31:0] operands;
+    begin
+        // Implement execution logic here
+        execute = 32'h0; // Temporary value
+    end
+endfunction
+
+// Function to write back results
+function write_back;
+    input [31:0] result;
+    begin
+        // Implement write back logic here
+        registers[0] = result; // Temporary assignment
+    end
+endfunction
+
+// Pipeline stages
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        PC <= 32'h0;
+        IF_ID_instruction <= 32'h0;
+        ID_EX_instruction <= 32'h0;
+        EX_WB_result <= 32'h0;
+    end else begin
+        // Instruction Fetch
+        IF_ID_instruction <= memory[PC[3:0]];
+        PC <= PC + 1;
+
+        // Instruction Decode
+        ID_EX_instruction <= IF_ID_instruction;
+        //operands <= decode_operands(IF_ID_instruction);
+
+        // Execution
+        EX_WB_result <= execute(ID_EX_instruction, 32'h0);
+
+        // Write Back
+        write_back(EX_WB_result);
+    end
+end
+
+endmodule
+
+#TEST BENCH
+module pipeline_processor_tb;
+
+reg clk;
+reg reset;
+
+pipeline_processor uut (
+    .clk(clk),
+    .reset(reset)
+);
+
+initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars;
+    clk = 0;
+    reset = 1;
+    #10 reset = 0;
+    forever #5 clk = ~clk;
+end
+
+initial begin
+    #100 $display("Registers: %h %h %h %h", uut.registers[0], uut.registers[1], uut.registers[2], uut.registers[3]);
+    #100 $finish;
+end
+
+initial $monitor(
+    "Time = %t, PC = %h, IF_ID_instruction = %h, ID_EX_instruction = %h, EX_WB_result = %h",
+    $time, uut.PC, uut.IF_ID_instruction, uut.ID_EX_instruction, uut.EX_WB_result
+);
+
+endmodule
+
+
